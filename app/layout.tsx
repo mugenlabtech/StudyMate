@@ -1,0 +1,3 @@
+import type { Metadata } from 'next'; import './globals.css';
+export const metadata:Metadata={title:'StudyMate — Your Smart Study Partner',description:'Course-connected learning for Nigerian students',manifest:'/manifest.webmanifest'};
+export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body><a className="skip" href="#main">Skip to content</a>{children}</body></html>};

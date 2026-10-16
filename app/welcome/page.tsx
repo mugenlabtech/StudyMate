@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import {ArrowRight, BookOpen, BrainCircuit, FileText, GraduationCap, Mic2, PlayCircle, ShieldCheck, Sparkles, WandSparkles, Layers3, CheckCircle2} from 'lucide-react';
-import './welcome.css';
+import '../welcome.css';
 const features=[
  {icon:FileText,title:'Document intelligence',desc:'Turn lecture PDFs and course materials into structured notes and revision questions.'},
  {icon:BrainCircuit,title:'AI study support',desc:'Ask questions, explore difficult concepts and study at your own pace.'},

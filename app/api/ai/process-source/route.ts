@@ -60,7 +60,12 @@ export async function POST(request:Request){
   const buffer=Buffer.from(await downloaded.data.arrayBuffer());let extracted='';
   if(source.kind==='txt')extracted=buffer.toString('utf8');
   if(source.kind==='docx'){const mammoth=(await import('mammoth')).default;extracted=(await mammoth.extractRawText({buffer})).value;}
-  if(source.kind==='pdf'){const pdfParse=(await import('pdf-parse')).default;extracted=(await pdfParse(buffer)).text;}
+  if(source.kind==='pdf'){
+    // pdf-parse v1 package entrypoint runs a demo PDF in some server bundlers.
+    // Load its actual parser directly to avoid ./test/data/05-versions-space.pdf.
+    const pdfParse = require('pdf-parse/lib/pdf-parse.js') as (data: Buffer) => Promise<{text:string}>;
+    extracted=(await pdfParse(buffer)).text;
+  }
   extracted=extracted.replace(/\0/g,'').trim();
   if(extracted.length<25)throw new AIError('NO_READABLE_TEXT',422,'No readable text found. Scanned documents need OCR.');
   const input=extracted.slice(0,23000);

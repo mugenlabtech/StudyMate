@@ -1,0 +1,35 @@
+/* StudyMate Studio UI — import in app/layout.tsx after globals.css */
+:root {color-scheme:light}
+html {scroll-padding-top:2rem}
+body {overflow-x:hidden}
+.main {min-width:0}
+.top {gap:1rem}
+.top > div {min-width:0}
+.top h1 {font-size:clamp(1.7rem,3vw,2.5rem);letter-spacing:-.045em}
+.panel {min-width:0}
+.stack {gap:1.25rem}
+.studio-intro h2 {font-size:1.25rem;letter-spacing:-.025em;margin:0 0 .25rem}
+.studio-intro p {margin:0}
+.studio-menu {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:.35rem}
+.studio-option {display:flex;flex-direction:column;align-items:flex-start;position:relative;gap:1rem;text-align:left;min-width:0;min-height:168px;width:100%;padding:1.2rem;border:1px solid #e4e8f3;border-radius:18px;background:#fff;color:#0f1f3d;transition:background .2s,border-color .2s,box-shadow .2s,transform .2s}
+.studio-option:hover {background:#f8f9ff;border-color:#a5a7fa;box-shadow:0 12px 28px #1a28600c;transform:translateY(-2px)}
+.studio-option.selected {background:#f4f4ff;border-color:#6366f1;box-shadow:inset 0 0 0 1px #6366f1}
+.studio-icon {display:grid;place-items:center;width:46px;height:46px;border-radius:13px;background:#ececff;color:#5053d8;flex-shrink:0}
+.studio-copy {display:flex;flex-direction:column;gap:.35rem;min-width:0;padding-right:1.2rem}
+.studio-copy strong {font-size:1rem;line-height:1.4;overflow-wrap:anywhere}
+.studio-copy small {font-size:.78rem;font-weight:400;color:#66728b;line-height:1.55;overflow-wrap:anywhere}
+.studio-arrow {position:absolute;right:1rem;bottom:1rem;color:#6366f1}
+.studio-option:focus-visible {outline:3px solid #6366f1;outline-offset:3px}
+.btn {min-height:44px;transition:filter .15s,transform .15s}
+.btn:not(:disabled):hover {filter:brightness(.95)}
+.btn:not(:disabled):active {transform:scale(.985)}
+.bottom button {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:54px}
+.bottom button span {display:block;font-size:10px;line-height:1.2}
+.field input,.field select,.field textarea {min-height:46px}
+.field textarea {resize:vertical;line-height:1.7}
+.skeleton {display:block;border-radius:12px;background:linear-gradient(90deg,#e9ecf6 25%,#f5f6fb 50%,#e9ecf6 75%);background-size:200% 100%;animation:study-shimmer 1.5s linear infinite}
+@keyframes study-shimmer {to{background-position-x:-200%}}
+@media(max-width:1100px){.studio-menu{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:850px){.top{align-items:flex-start}.main{padding-bottom:calc(112px + env(safe-area-inset-bottom))}.bottom{box-shadow:0 -8px 28px #14204412}.studio-menu{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.top .chip{display:none}.studio-menu{grid-template-columns:1fr;gap:.7rem}.studio-option{min-height:96px;padding:1rem;flex-direction:row;align-items:center;gap:.85rem}.studio-icon{width:44px;height:44px}.studio-copy{padding-right:1rem}.studio-arrow{right:.8rem;bottom:auto;top:calc(50% - 8px)}.panel{padding:18px}.bottom{padding-left:2px;padding-right:2px}.bottom button{padding:8px 0;font-size:10px}}
+@media(prefers-reduced-motion:reduce){.studio-option,.btn{transition:none}.studio-option:hover{transform:none}.skeleton{animation:none}}

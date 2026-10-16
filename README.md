@@ -1,23 +1,11 @@
-# StudyMate — Next.js implementation foundation
+# StudyMate targeted update (not a complete overhaul)
 
-This is a **real Next.js application**, not the old static HTML prototype. It includes Supabase email authentication, user-owned course creation, persistent notes, study tasks, secure storage uploads, local microphone capture, job-status reads and an explicitly fail-closed Paystack webhook signature boundary. It does **not** claim completed AI processing, worker orchestration, payment reconciliation, Google OAuth configuration, or all 24 modules.
+GitHub integration denied branch creation (HTTP 403). These files are prepared locally and are NOT pushed.
 
-## Run
+1. Copy `lib/supabase.ts` into your project's `lib/supabase.ts`.
+2. Copy `app/studio-overhaul.css` and `app/loading.tsx` into your project's `app/` folder.
+3. In `app/layout.tsx`, add `import './studio-overhaul.css';` after the existing globals.css import.
+4. In `app/page.tsx`, change the existing `<main className="main">` within the authenticated shell to `<main id="main" className="main">` to fix the skip link. Add `id="main"` to other top-level main elements too.
+5. Run `npm run typecheck`, `npm run build`, and test actual signup/login, courses, note saving and file uploads.
 
-1. `npm install`
-2. Copy `.env.example` to `.env.local` and set your Supabase URL and publishable/anon key.
-3. Apply `supabase/migrations/0001_foundation.sql` to a new Supabase project after review.
-4. Create a **private** Supabase Storage bucket named `private-sources` and apply `0002_storage.sql`.
-5. `npm run typecheck` then `npm run dev`.
-
-## Architecture and security
-
-See `docs/ARCHITECTURE.md` and `docs/ACCEPTANCE_MATRIX.md`. Supabase RLS restricts courses, notes and tasks by authenticated user. Storage uploads are user/course scoped. A separate durable worker must process sources; no browser-side AI secrets. Do not run video/transcription on Vercel request functions. Audio must never be deleted before durable transcript and notes are verified. The Paystack webhook intentionally returns 503 after signature validation until durable idempotent payment processing is implemented.
-
-## Branding
-
-`public/brand-board.png` is the user's exact supplied board; `public/brand-mark-reference.png` is a crop from the board for development reference. Replace with a separately supplied transparent vector logo when available, without reconstructing or altering the mark.
-
-## Known blockers
-
-A deployed Supabase project, configured AI providers, durable worker hosting, validated pricing/quotas, and a verified Paystack merchant account are required. No E2E tests have been run. No production readiness claim is made.
+The existing manifest has no icons and the current root page is auth-gated. Full PWA enablement, a public landing page, and verified login error repair require additional changes and testing. This package does not claim to complete those tasks.

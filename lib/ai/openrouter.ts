@@ -1,17 +1,23 @@
 import 'server-only';
-import OpenAI from 'openai';
 import {aiConfig} from './config';
 export class AIError extends Error {constructor(public code:string,public status:number,message:string){super(message);}}
 export function normalizeError(e:unknown):AIError {
  if(e instanceof AIError)return e;
- if(e instanceof OpenAI.APIError){const code=e.status===401?'AI_INVALID_KEY':e.status===429?'AI_RATE_LIMIT':e.status===402?'AI_PAYMENT_REQUIRED':e.status===400?'AI_UNSUPPORTED_CAPABILITY':e.status && e.status>=500?'AI_PROVIDER_UNAVAILABLE':'AI_PROVIDER_ERROR';return new AIError(code,e.status||502,code);}
- if(e instanceof Error && /timeout|abort/i.test(e.message))return new AIError('AI_TIMEOUT',504,'AI_TIMEOUT');
- return new AIError('AI_PROVIDER_ERROR',502,'AI_PROVIDER_ERROR');
+ if(e instanceof Error && /abort|timeout/i.test(e.message))return new AIError('AI_TIMEOUT',504,'AI request timed out');
+ return new AIError('AI_PROVIDER_ERROR',502,e instanceof Error?e.message:'AI request failed');
 }
-export async function complete(messages:OpenAI.Chat.ChatCompletionMessageParam[], opts:{model?:string;signal?:AbortSignal;maxTokens?:number}={}) {
+type Message={role:'system'|'user'|'assistant';content:string};
+type Usage={prompt_tokens?:number;completion_tokens?:number};
+export async function complete(messages:Message[],opts:{model?:string;signal?:AbortSignal;maxTokens?:number}={}) {
  const cfg=aiConfig();if(!cfg.apiKey)throw new AIError('AI_NOT_CONFIGURED',503,'OpenRouter API key is not configured');
- const model=opts.model || cfg.models[0];if(!cfg.models.includes(model))throw new AIError('AI_MODEL_NOT_ALLOWED',400,'Model is not in the configured free-model allowlist');
- const client=new OpenAI({apiKey:cfg.apiKey,baseURL:cfg.baseURL,timeout:cfg.timeout,maxRetries:0});
- try {const response=await client.chat.completions.create({model,messages,max_tokens:opts.maxTokens||1600,temperature:0.2},{signal:opts.signal});const text=response.choices[0]?.message?.content;if(!text)throw new AIError('AI_EMPTY_RESPONSE',502,'Model returned no text');return {text,model:response.model||model,usage:response.usage,requestId:response.id};}
- catch(e){throw normalizeError(e);}
+ const model=opts.model||cfg.models[0];if(!cfg.models.includes(model))throw new AIError('AI_MODEL_NOT_ALLOWED',400,'Model is not in the configured free-model allowlist');
+ const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),cfg.timeout);
+ const onAbort=()=>controller.abort();opts.signal?.addEventListener('abort',onAbort,{once:true});
+ try {
+  const response=await fetch(cfg.baseURL.replace(/\/$/,'')+'/chat/completions',{method:'POST',headers:{Authorization:`Bearer ${cfg.apiKey}`,'Content-Type':'application/json','HTTP-Referer':'https://studymate.cloud','X-Title':'StudyMate'},body:JSON.stringify({model,messages,max_tokens:opts.maxTokens||1600,temperature:0.2}),signal:controller.signal,cache:'no-store'});
+  const payload:unknown=await response.json();const data=payload as {error?:{message?:string;code?:string|number};choices?:Array<{message?:{content?:string|null}}> ;model?:string;usage?:Usage;id?:string};
+  if(!response.ok)throw new AIError(response.status===429?'AI_RATE_LIMIT':response.status===401?'AI_INVALID_KEY':response.status===402?'AI_PAYMENT_REQUIRED':'AI_PROVIDER_ERROR',response.status,data.error?.message||'OpenRouter request failed');
+  const result=data.choices?.[0]?.message?.content;if(!result)throw new AIError('AI_EMPTY_RESPONSE',502,'OpenRouter returned no text');
+  return {text:result,model:data.model||model,usage:data.usage,requestId:data.id};
+ }catch(e){throw normalizeError(e);}finally{clearTimeout(timeout);opts.signal?.removeEventListener('abort',onAbort);}
 }

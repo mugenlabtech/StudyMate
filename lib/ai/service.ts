@@ -24,20 +24,20 @@ export async function generateAcademicAI(db:SupabaseClient,params:{userId:string
   let output:unknown=response.text;
   if(structured){
     let last:unknown;
-    for(let attempt=0;attempt<3;attempt++){
+    for(let attempt=0;attempt<2;attempt++){
       try{output=parseStructured(feature as StructuredFeature,response.text);last=undefined;break;}
       catch(error){
         last=error;
-        if(attempt<2){
+        if(attempt<1){
           response=await complete([...messages,
             {role:'assistant',content:response.text.slice(0,12000)},
             {role:'user',content:`The response was invalid (${error instanceof Error?error.message:'invalid JSON'}). Return a SINGLE valid JSON object with all required keys for ${feature}: ${JSON.stringify(schemas[feature as StructuredFeature])}. No markdown fences, no commentary. If no source IDs were provided, use empty source_refs arrays. Keep the response short enough to finish completely.`}
-          ],{model:params.model,signal:params.signal,maxTokens:2400});
+          ],{model:params.model,signal:params.signal,maxTokens:1600});
           usedModel=response.model;
         }
       }
     }
-    if(last)throw new AIError('AI_INVALID_OUTPUT',502,'The AI model could not produce valid structured content after three attempts. Try a shorter request or another free model.');
+    if(last)throw new AIError('AI_INVALID_OUTPUT',502,'The AI model could not produce valid structured content after two attempts. Try a shorter request or another free model.');
   }
   const allowed=new Set(chunks.map(c=>c.source_id));const validateRefs=(v:unknown):void=>{if(!v||typeof v!=='object')return;if(Array.isArray(v)){v.forEach(validateRefs);return;}for(const [key,value]of Object.entries(v)){if(key==='source_refs'&&Array.isArray(value)){for(const ref of value){if(typeof ref==='object'&&ref&&'source_id'in ref&&!allowed.has(String(ref.source_id)))throw new AIError('AI_INVALID_CITATION',502,'AI referenced an unauthorized source');}}else validateRefs(value);}};validateRefs(output);
   const {error:logError}=await db.rpc('log_ai_request',{p_course:courseId,p_feature:feature,p_model:usedModel,p_status:'success',p_duration:Date.now()-started,p_prompt_tokens:response.usage?.prompt_tokens??null,p_completion_tokens:response.usage?.completion_tokens??null,p_error_code:null});if(logError)throw new AIError('AI_USAGE_LOG_FAILED',503,'Could not record AI usage');

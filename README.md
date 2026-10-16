@@ -1,11 +1,9 @@
-# StudyMate targeted update (not a complete overhaul)
+# StudyMate mobile Studio + browser icon patch
 
-GitHub integration denied branch creation (HTTP 403). These files are prepared locally and are NOT pushed.
+Copy `app/layout.tsx`, `app/studio-fix.css` and everything in `public/` into the corresponding folders in your StudyMate project. Keep the existing `app/page.tsx`, `app/globals.css`, Supabase setup and course data intact. This patch adds missing `.studio-*` styles and browser/PWA icons.
 
-1. Copy `lib/supabase.ts` into your project's `lib/supabase.ts`.
-2. Copy `app/studio-overhaul.css` and `app/loading.tsx` into your project's `app/` folder.
-3. In `app/layout.tsx`, add `import './studio-overhaul.css';` after the existing globals.css import.
-4. In `app/page.tsx`, change the existing `<main className="main">` within the authenticated shell to `<main id="main" className="main">` to fix the skip link. Add `id="main"` to other top-level main elements too.
-5. Run `npm run typecheck`, `npm run build`, and test actual signup/login, courses, note saving and file uploads.
+The supplied icons are newly drawn **temporary StudyMate-themed book icons**, not the exact approved brand logo. Replace them with exported brand-board icons when available.
 
-The existing manifest has no icons and the current root page is auth-gated. Full PWA enablement, a public landing page, and verified login error repair require additional changes and testing. This package does not claim to complete those tasks.
+Run `npm install`, `npm run typecheck`, `npm run build`, then commit and push. Redeploy on Vercel. Hard refresh the browser; favicon and manifest icons may remain cached.
+
+Note: a manifest and icons alone do **not** make the application fully offline-capable; service worker/offline support requires separate implementation and testing. The patch does not fix the previously reported login error.

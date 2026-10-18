@@ -1,5 +1,5 @@
 import 'server-only';
-import {createClient} from '@supabase/supabase-js';
+import {createClient, type SupabaseClient} from '@supabase/supabase-js';
 import {NextResponse} from 'next/server';
 
 export class AdminError extends Error { constructor(public status:number, message:string){super(message);} }
@@ -24,7 +24,7 @@ export function adminFailure(error:unknown){
   console.error('Admin operation failed:',error instanceof Error?error.message:'Unknown error');
   return NextResponse.json({error:status===500?'Unable to complete request':(error as Error).message},{status,headers:{'Cache-Control':'no-store'}});
 }
-export async function audit(admin:ReturnType<typeof createClient>,userId:string,action:string,target:string,details:Record<string,unknown>={}){
+export async function audit(admin:SupabaseClient<any,'public'>,userId:string,action:string,target:string,details:Record<string,unknown>={}){
   const {error}=await admin.from('admin_audit_logs').insert({actor_id:userId,action,target,details});
   if(error)console.error('Admin audit logging failed:',error.message);
 }

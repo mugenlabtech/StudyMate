@@ -51,3 +51,29 @@ export async function generateAcademicAI(db:SupabaseClient,params:{userId:string
   return {output,model:usedModel,usage:response.usage??null,sources:chunks.map(c=>({source_id:c.source_id,chunk_id:c.id,page_number:c.page_number,start_ms:c.start_ms}))};
  }catch(e){await db.rpc('log_ai_request',{p_course:courseId,p_feature:feature,p_model:usedModel,p_status:'failed',p_duration:Date.now()-started,p_prompt_tokens:null,p_completion_tokens:null,p_error_code:normalizeError(e).code});throw e;}
 }
+
+
+const { course, chunks } = await loadCourseContext(
+  db,
+  userId,
+  courseId,
+  params.topicId,
+  params.sourceIds,
+);
+
+const sourceRequiredFeatures = new Set([
+  'audio_script',
+  'summary',
+  'flashcards',
+  'notes',
+  'glossary',
+  'document_explanation',
+]);
+
+if (sourceRequiredFeatures.has(feature) && chunks.length === 0) {
+  throw new AIError(
+    'SOURCE_MATERIAL_REQUIRED',
+    422,
+    'Upload or select processed course materials before generating this content.',
+  );
+}

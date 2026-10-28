@@ -37,7 +37,13 @@ export async function generateAcademicAI(db:SupabaseClient,params:{userId:string
         }
       }
     }
-    if(last)throw new AIError('AI_INVALID_OUTPUT',502,'The AI model could not produce valid structured content after two attempts. Try a shorter request or another free model.');
+    if (last) {
+  throw new AIError(
+    'AI_INVALID_OUTPUT',
+    502,
+    'The AI model could not produce valid structured content after two attempts. Try a shorter request.',
+  );
+}
   }
   const allowed=new Set(chunks.map(c=>c.source_id));const validateRefs=(v:unknown):void=>{if(!v||typeof v!=='object')return;if(Array.isArray(v)){v.forEach(validateRefs);return;}for(const [key,value]of Object.entries(v)){if(key==='source_refs'&&Array.isArray(value)){for(const ref of value){if(typeof ref==='object'&&ref&&'source_id'in ref&&!allowed.has(String(ref.source_id)))throw new AIError('AI_INVALID_CITATION',502,'AI referenced an unauthorized source');}}else validateRefs(value);}};validateRefs(output);
   const {error:logError}=await db.rpc('log_ai_request',{p_course:courseId,p_feature:feature,p_model:usedModel,p_status:'success',p_duration:Date.now()-started,p_prompt_tokens:response.usage?.prompt_tokens??null,p_completion_tokens:response.usage?.completion_tokens??null,p_error_code:null});if(logError)throw new AIError('AI_USAGE_LOG_FAILED',503,'Could not record AI usage');
